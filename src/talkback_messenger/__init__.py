@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import os
+from importlib import metadata
 from datetime import datetime, timedelta
 from typing import List, Tuple
 
@@ -82,6 +83,10 @@ async def validate_environment_variables():
 async def main_coroutine():
     try:
         parser = argparse.ArgumentParser(description='Talkback Slack Bot')
+        parser.add_argument(
+            '-v', '--version',
+            action='version',
+            version=f'Talkback Messenger: {metadata.version("talkback-messenger")}')
         parser.add_argument(
             '--config',
             type=str,
