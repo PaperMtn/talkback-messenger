@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "talkback-messenger"
+version = "0.9.0"
+description = ""
+authors = ["PaperMtn <papermtn@protonmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+gql = "^3.5.0"
+aiohttp = "^3.11.11"
+beautifulsoup4 = "^4.12.3"
+requests = "^2.32.3"
+pyyaml = "^6.0.2"
+loguru = "^0.7.3"
+slack-sdk = "^3.34.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+coverage = "^7.2.3"
+pylint = "^3.3.1"
+
+[tool.poetry.scripts]
+talkback-messenger = "talkback_messenger:main"
+
+[tool.pylint.messages_control]
+max-line-length = 120
+max-attributes = 10
+max-args = 10
+disable = [
+    "missing-module-docstring",
+    "too-few-public-methods",
+    "arguments-differ",
+    "logging-fstring-interpolation",
+    "no-else-return",
+    "no-else-raise",
+    "inconsistent-return-statements",
+    "broad-exception-caught",
+    "duplicate-code",
+]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+]
+
+[tool.coverage.run]
+source = [
+    "src",
+    "talkback_messenger"
+]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__init__.py",
+    "*/__main__.py",
+    "*/setup.py",
+    "*/manage.py",
+    "*/env/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+sort = "Cover"
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "import pbd",
+    "pdb.set_trace()",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+show_contexts = true
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
