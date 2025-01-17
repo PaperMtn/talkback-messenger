@@ -1,3 +1,14 @@
+"""Talkback API client
+
+This module provides a client for the Talkback API. Uses the gql library to interact with the API.
+
+Typical usage example:
+    from talkback_messenger.clients import talkback_client
+    client = talkback_client.TalkbackClient(api_url, token)
+
+    query_results = await client.search_resources(search, created_after)
+"""
+
 from datetime import datetime
 from typing import Any, Dict, List
 

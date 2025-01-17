@@ -1,3 +1,13 @@
+"""Module to build Slack Block Kit formatted messages from Talkback resources
+
+This module contains functions to build Slack Block Kit formatted messages for
+the initial Slack post, and then for the post in the thread that proceeds it.
+
+Typical usage example:
+    slack_post = build_slack_post(resource)
+    thread_message = build_thread_message(resource, subscription)
+"""
+
 from typing import List, Dict, Any
 
 from talkback_messenger.models.resource import Resource
@@ -24,82 +34,82 @@ def build_slack_post(resource: Resource) -> List[Dict[Any, Any]]:
 
     if len(resource.title) > 150:
         header = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"*{resource.title}*:"
+            'type': 'section',
+            'text': {
+                'type': 'mrkdwn',
+                'text': f'*{resource.title}*:'
             }
         }
     else:
         header = {
-            "type": "header",
-            "text": {
-                "type": "plain_text",
-                "text": resource.title
+            'type': 'header',
+            'text': {
+                'type': 'plain_text',
+                'text': resource.title
             }
         }
 
     message_template = [
         header,
         {
-            "type": "section",
-            "fields": [
+            'type': 'section',
+            'fields': [
                 {
-                    "type": "mrkdwn",
-                    "text": f":page_with_curl:* Resource Type*: {resource.type.title()}"
+                    'type': 'mrkdwn',
+                    'text': f':page_with_curl:* Resource Type*: {resource.type.title()}'
                 },
                 {
-                    "type": "mrkdwn",
-                    "text": f":book:* Time to read*: {resource.readtime} mins"
+                    'type': 'mrkdwn',
+                    'text': f':book:* Time to read*: {resource.readtime} mins'
                 },
                 {
-                    "type": "mrkdwn",
-                    "text": f":card_index_dividers: *Categories*:\n• {categories}"
+                    'type': 'mrkdwn',
+                    'text': f':card_index_dividers: *Categories*:\n• {categories}'
                 },
                 {
-                    "type": "mrkdwn",
-                    "text": f":link: *Source*: `{resource.domain.replace(".", "[.]")}`"
+                    'type': 'mrkdwn',
+                    'text': f':link: *Source*: `{resource.domain.replace('.', '[.]')}`'
                 }
             ]
         },
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"*Resource Link*: <{resource.url}|{resource.url}>"
+            'type': 'section',
+            'text': {
+                'type': 'mrkdwn',
+                'text': f'*Resource Link*: <{resource.url}|{resource.url}>'
             }
         },
         {
-            "type": "section",
-            "fields": [
+            'type': 'section',
+            'fields': [
                 {
-                    "type": "mrkdwn",
-                    "text": f":pushpin: *Topics*:\n• {topics}"
+                    'type': 'mrkdwn',
+                    'text': f':pushpin: *Topics*:\n• {topics}'
                 },
                 {
-                    "type": "mrkdwn",
-                    "text": f":card_index: *Vendors*:\n• {vendors}"
+                    'type': 'mrkdwn',
+                    'text': f':card_index: *Vendors*:\n• {vendors}'
                 }
             ]
         },
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*AI Synopsis*:"
+            'type': 'section',
+            'text': {
+                'type': 'mrkdwn',
+                'text': '*AI Synopsis*:'
             }
         },
         {
-            "type": "rich_text",
-            "elements": [
+            'type': 'rich_text',
+            'elements': [
                 {
-                    "type": "rich_text_quote",
-                    "elements": [
+                    'type': 'rich_text_quote',
+                    'elements': [
                         {
-                            "type": "text",
-                            "text": f"{resource.synopsis}",
-                            "style": {
-                                "italic": True
+                            'type': 'text',
+                            'text': f'{resource.synopsis}',
+                            'style': {
+                                'italic': True
                             }
                         }
                     ]
@@ -124,44 +134,44 @@ def build_thread_message(resource: Resource, subscription: Subscription) -> List
     for line in resource.summary:
         summary_elements.append(
             {
-                "type": "text",
-                "text": line,
-                "style": {
-                    "italic": True
+                'type': 'text',
+                'text': line,
+                'style': {
+                    'italic': True
                 }
             })
         summary_elements.append(
             {
-                "type": "text",
-                "text": "\n\n"
+                'type': 'text',
+                'text': '\n\n'
             },
         )
 
     message_template = [
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*AI Summary*:"
+            'type': 'section',
+            'text': {
+                'type': 'mrkdwn',
+                'text': '*AI Summary*:'
             }
         },
         {
-            "type": "rich_text",
-            "elements": [
+            'type': 'rich_text',
+            'elements': [
                 {
-                    "type": "rich_text_quote",
-                    "elements": summary_elements
+                    'type': 'rich_text_quote',
+                    'elements': summary_elements
                 }
             ]
         },
         {
-            "type": "context",
-            "elements": [
+            'type': 'context',
+            'elements': [
                 {
-                    "type": "mrkdwn",
-                    "text": f"*Meta:* \nTalkback URL: <{resource.talkback_url}|{resource.talkback_url}>"
-                            f"\nRank: `{resource.rank}`\nSubscription: `{subscription.subscription_type}: "
-                            f"{subscription.name}`"
+                    'type': 'mrkdwn',
+                    'text': f'*Meta:* \nTalkback URL: <{resource.talkback_url}|{resource.talkback_url}>'
+                            f'\nRank: `{resource.rank}`\nSubscription: `{subscription.subscription_type}: '
+                            f'{subscription.name}`'
                 }
             ]
         }
@@ -169,42 +179,42 @@ def build_thread_message(resource: Resource, subscription: Subscription) -> List
 
     if resource.vulnerabilities:
         vulnerabilities = [{
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*Vulnerabilities*:"
+            'type': 'section',
+            'text': {
+                'type': 'mrkdwn',
+                'text': '*Vulnerabilities*:'
             }
         }]
         vuln_elements = []
         for vuln in resource.vulnerabilities:
             vuln_elements.append(
                 {
-                    "type": "rich_text_section",
-                    "elements": [
+                    'type': 'rich_text_section',
+                    'elements': [
                         {
-                            "type": "link",
-                            "url": f"https://talkback.sh/vulnerability/{vuln.name}/",
-                            "text": vuln.name,
-                            "style": {
-                                "bold": True
+                            'type': 'link',
+                            'url': f'https://talkback.sh/vulnerability/{vuln.name}/',
+                            'text': vuln.name,
+                            'style': {
+                                'bold': True
                             }
                         },
                         {
-                            "type": "text",
-                            "text": f" - CVSS: {vuln.cvss}"
+                            'type': 'text',
+                            'text': f' - CVSS: {vuln.cvss}'
                         }
                     ]
                 }
             )
 
         vulnerabilities.append({
-            "type": "rich_text",
-            "elements": [
+            'type': 'rich_text',
+            'elements': [
                 {
-                    "type": "rich_text_list",
-                    "style": "bullet",
-                    "indent": 0,
-                    "elements": vuln_elements
+                    'type': 'rich_text_list',
+                    'style': 'bullet',
+                    'indent': 0,
+                    'elements': vuln_elements
                 }
             ]
         })

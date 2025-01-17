@@ -1,3 +1,10 @@
+"""Model that contains configuration settings for Talkback Messenger.
+
+Typical usage example:
+    from talkback_messenger.models import config
+    config = config.create_config_from_dict(config_dict)
+"""
+
 from dataclasses import dataclass
 from typing import List, Optional
 

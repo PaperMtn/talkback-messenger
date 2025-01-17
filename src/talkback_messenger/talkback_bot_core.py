@@ -1,3 +1,19 @@
+"""Core functionality for the Talkback Messenger bot
+
+This module contains the core functionality for the Talkback Messenger bot.
+This includes:
+- Loading the application configuration
+- Searching for resources in Talkback
+- Filtering resources against subscriptions
+- Sending Slack posts for found resources
+
+Typical usage example:
+    from talkback_messenger import talkback_bot_core
+    app_config = await talkback_bot_core.load_app_config('talkback.conf')
+    resources = await talkback_bot_core.get_subscribed_content(talkback_client, app_config.subscriptions)
+    await talkback_bot_core.send_slack_posts(resources)
+"""
+
 import json
 import re
 from typing import List, Optional, Tuple
@@ -143,7 +159,11 @@ async def query_search(talkback_client: TalkbackClient,
         List of Resource objects
     """
 
-    search_results = await find_resources(talkback_client, sub_object.name, created_after, created_before)
+    search_results = await find_resources(
+        talkback_client,
+        sub_object.name,
+        created_after,
+        created_before)
     return [res for res in search_results if filter_resource(res, sub_object)]
 
 

@@ -1,3 +1,12 @@
+"""Utility functions for the Talkback Messenger
+
+This module contains utility functions that are used throughout the Talkback Messenger
+
+Typical usage example:
+    from talkback_messenger.utils import load_config
+    config = load_config('config.yaml')
+"""
+
 import sys
 from typing import Dict, Any, Tuple
 
@@ -24,7 +33,8 @@ def load_config(filepath: str) -> Dict[str, Any] | None:
         return None
 
 
-def deduplicate_results(resource_list: list[Tuple[Resource, Subscription]]) -> list[Tuple[Resource, Subscription]]:
+def deduplicate_results(resource_list: list[Tuple[Resource, Subscription]]) \
+        -> list[Tuple[Resource, Subscription]]:
     """Deduplicate a list of resources based on their id
 
     Args:
@@ -42,7 +52,7 @@ def deduplicate_results(resource_list: list[Tuple[Resource, Subscription]]) -> l
     return deduplicated_resources
 
 
-async def init_logger(debug: bool):
+async def init_logger(debug: bool) -> None:
     """Initialise the Loguru logger
 
     Args:
@@ -50,8 +60,8 @@ async def init_logger(debug: bool):
     """
 
     logger.remove()
-    log_format = ("<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <level>{"
-                  "message}</level>")
+    log_format = ('<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <level>{'
+                  'message}</level>')
     if debug:
         logger.add(sys.stdout, level='DEBUG', format=log_format)
         logger.debug('Logging level set to DEBUG')

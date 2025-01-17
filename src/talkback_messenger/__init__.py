@@ -9,10 +9,9 @@ from loguru import logger
 from slack_sdk import WebClient
 
 from talkback_messenger import talkback_bot_core
-from talkback_messenger.clients.talkback_client import TalkbackClient
 from talkback_messenger.models import subscription, resource
-from talkback_messenger.utils import init_logger
-from talkback_messenger.utils import load_config
+from talkback_messenger.utils import init_logger, load_config
+from talkback_messenger.clients.talkback_client import TalkbackClient
 
 
 async def search_subscribed_content(talkback_client: TalkbackClient,
@@ -79,14 +78,18 @@ async def validate_environment_variables():
         raise ValueError('SLACK_API_TOKEN environment variable not set')
 
 
-# pylint: disable=missing-function-docstring, too-many-locals
 async def main_coroutine():
+    """Main coroutine for the Talkback Slack Bot.
+    Allows running the async function in the main function
+    """
+
     try:
+        version = metadata.version('talkback-messenger')
         parser = argparse.ArgumentParser(description='Talkback Slack Bot')
         parser.add_argument(
             '-v', '--version',
             action='version',
-            version=f'Talkback Messenger: {metadata.version("talkback-messenger")}')
+            version=f'Talkback Messenger: {version}')
         parser.add_argument(
             '--config',
             type=str,

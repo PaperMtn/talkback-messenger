@@ -1,3 +1,11 @@
+"""Custom exceptions for Talkback Messenger
+
+Typical usage example:
+    from talkback_messenger.exceptions import NoConfigFoundError
+
+    raise NoConfigFoundError()
+"""
+
 class NoConfigFoundError(Exception):
     """Raised when no config file is found"""
 
@@ -11,7 +19,11 @@ class NoConfigFoundError(Exception):
 
 
 class NoDestinationError(Exception):
-    """Raised when no destination is provided"""
+    """Raised when no destination is provided
+
+    Args:
+        subscription: Subscription object
+    """
 
     def __init__(self, subscription):
         self.message = (f'No destination provided for the subscription {subscription.category} - {subscription.name}.'

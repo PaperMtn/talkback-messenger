@@ -1,3 +1,10 @@
+"""Module for Subscription model
+
+Typical usage example:
+    from talkback_messenger.models import subscription
+    sub = subscription.create_subscription_from_dict(subscription_dict)
+"""
+
 from dataclasses import dataclass
 from typing import List, Dict, Union, Optional
 

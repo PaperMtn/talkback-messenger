@@ -1,3 +1,10 @@
+"""Resource model for Talkback API
+
+Typical usage example:
+    from talkback_messenger.models import resource
+    res = resource.create_resource_from_dict(resource_dict)
+"""
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Dict, Union

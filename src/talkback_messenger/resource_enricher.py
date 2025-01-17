@@ -1,3 +1,17 @@
+"""Module to enrich Talkback resources by scraping the webpage using BeautifulSoup
+
+This module contains functions to scrape the Talkback resource webpage and extract
+information that is not included in the Talkback API response.
+This includes:
+- Synopsis
+- Summary
+- Topics
+- Vulnerabilities
+
+Typical usage example:
+    information = populate_information('https://talkback.sh/resource/abc-123/')
+"""
+
 from typing import Dict, List, Any
 
 import requests
@@ -9,7 +23,6 @@ def _get_synopsis(html_output: BeautifulSoup) -> Dict[str, str]:
     for s in spans:
         if s.get_text() == 'Synopsis':
             siblings = s.fetchNextSiblings()
-
             paragraphs = [element.get_text() for element in siblings if element.name == 'p']
             information_dict = {
                 'synopsis': paragraphs[0] if paragraphs else None,
