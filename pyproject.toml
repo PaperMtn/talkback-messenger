@@ -23,22 +23,6 @@ pylint = "^3.3.1"
 [tool.poetry.scripts]
 talkback-messenger = "talkback_messenger:main"
 
-[tool.pylint.messages_control]
-max-line-length = 120
-max-attributes = 10
-max-args = 10
-disable = [
-    "missing-module-docstring",
-    "too-few-public-methods",
-    "arguments-differ",
-    "logging-fstring-interpolation",
-    "no-else-return",
-    "no-else-raise",
-    "inconsistent-return-statements",
-    "broad-exception-caught",
-    "duplicate-code",
-]
-
 [tool.pytest.ini_options]
 filterwarnings = [
     "error",
