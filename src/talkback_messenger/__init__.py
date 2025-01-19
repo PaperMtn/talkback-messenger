@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 from loguru import logger
 from slack_sdk import WebClient
+from gql.transport.exceptions import TransportQueryError
 
 from talkback_messenger import talkback_bot_core
 from talkback_messenger.models import subscription, resource
@@ -78,6 +79,23 @@ async def validate_environment_variables():
         raise ValueError('SLACK_API_TOKEN environment variable not set')
 
 
+async def validate_token(talkback_client: TalkbackClient) -> TalkbackClient:
+    """Validate the Talkback API token"""
+
+    try:
+        await talkback_client.validate_token()
+    except TransportQueryError as e:
+        if e.errors[0].get('message') == 'Signature has expired':
+                raise ValueError('Talkback API Token has expired')
+        else:
+            raise ValueError('Talkback API token is invalid')
+
+    new_token = await talkback_client.refresh_token()
+    new_token = new_token.get('refreshToken').get('token')
+    talkback_client.token = new_token
+    return talkback_client
+
+
 async def main_coroutine():
     """Main coroutine for the Talkback Slack Bot.
     Allows running the async function in the main function
@@ -131,7 +149,7 @@ async def main_coroutine():
             created_before = end_of_previous_day.isoformat()
 
         talkback_client = TalkbackClient('https://talkback.sh/api/v1/', os.getenv('TALKBACK_API_TOKEN'))
-        await talkback_client.refresh_token()
+        talkback_client = await validate_token(talkback_client)
         slack_client = await init_slack_client()
 
         logger.info('Importing subscriptions')
@@ -152,12 +170,19 @@ async def main_coroutine():
         if results:
             logger.success(f'{len(results)} resources found')
             logger.info('Posting to Slack')
-            await post_to_slack(results, slack_client, app_config.default_user, app_config.default_channel)
+            await post_to_slack(
+                results,
+                slack_client,
+                app_config.slack_defaults.default_user,
+                app_config.slack_defaults.default_channel)
         else:
             logger.info('No resources found')
         logger.success('Finished Talkback Slack Bot')
     except Exception as e:
-        logger.exception(e)
+        if args.debug:
+            logger.exception(e)
+        else:
+            logger.critical(e)
 
 
 # pylint: disable=missing-function-docstring
