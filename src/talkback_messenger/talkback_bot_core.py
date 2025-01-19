@@ -57,8 +57,10 @@ async def load_app_config(filepath: str) -> config.Config:
             sub['subscription_type'] = sub_type
             subscriptions.append(subscription.create_subscription_from_dict(sub))
     talkback_config = config.Config(
-        default_user=app_config.get('default_user'),
-        default_channel=app_config.get('default_channel'),
+        slack_defaults=config.SlackDefaults(
+            default_user=app_config.get('slack').get('default_user'),
+            default_channel=app_config.get('slack').get('default_channel')
+        ),
         subscriptions=subscriptions
     )
     return talkback_config
@@ -156,7 +158,7 @@ async def query_search(talkback_client: TalkbackClient,
         created_after: Created after date in ISO format
         created_before: Created before date in ISO format
     Returns:
-        List of Resource objects
+        List of Resource objects that match the subscription search query
     """
 
     search_results = await find_resources(
@@ -197,7 +199,7 @@ async def get_subscribed_content(talkback_client: TalkbackClient,
         created_after: Created after date in ISO format
         created_before: Created before date in ISO format
     Returns:
-        List of Resource objects
+        List containing tuples of Resource objects and the subscription they match 
     """
 
     filtered_results = []
@@ -213,13 +215,19 @@ async def get_subscribed_content(talkback_client: TalkbackClient,
     return deduplicate_results(filtered_results)
 
 
-async def find_user(user: str, slack_client: WebClient) -> str | None:
-    """ Find a user in Slack
+async def validate_slack_user_id(user: str, slack_client: WebClient) -> str | None:
+    """Validate the string for the user to send the message to is a user ID.
+    First it checks if the string is an email address. If it is, it looks up
+    the user and returns the ID. 
+    
+    If the string matches the format for a Slack user ID, it returns it.
+    
+    Otherwise, it returns None
 
     Args
-        user: Email address of the user
+        user: Either a Slack user ID or an email address
     Returns:
-        User ID
+        User ID or None
     """
 
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
@@ -237,30 +245,53 @@ async def find_user(user: str, slack_client: WebClient) -> str | None:
             return None
 
 
+async def get_destinations(sub: subscription.Subscription,
+                           slack_client: WebClient,
+                           default_user: str,
+                           default_channel: str) -> List[str]:
+    """Get destinations for a given subscription. Checks if any 
+    users or channels have been specified in the subscription. If not
+    the default user and channel are used.
+
+    Args:
+        sub: Subscription object
+        slack_client: Slack WebClient object
+        default_user: Default user to post as
+        default_channel: Default channel to post to
+    Returns:
+        List of users and/or channel IDs
+    """
+
+    destinations = []
+    if sub.slack_destinations.channels:
+        destinations.extend(sub.slack_destinations.channels)
+    if sub.slack_destinations.users:
+        for user in sub.slack_destinations.users:
+            user_id = await validate_slack_user_id(user, slack_client)
+            if user_id:
+                destinations.append(user_id)
+    if not destinations:
+        destinations.append(await validate_slack_user_id(default_user, slack_client))
+        destinations.append(default_channel)
+    return list(set(destinations))
+
+
 async def send_slack_posts(resources: list[Tuple[resource.Resource, subscription.Subscription]],
                            slack_client: WebClient,
                            default_user: str,
-                           default_channel: str):
-    """Send Slack posts for found resources
+                           default_channel: str) -> None:
+    """Send Slack posts for resources that have matched subscriptions.
+    Messages are sent to the channels and users specified in the subscriptions
 
     Args:
-        resources: List of Resource objects
+        resources: List of tuples containing Resource and Subscription objects
         slack_client: Slack WebClient object
-        default_user: Default user for posting
-        default_channel: Default channel for posting
+        default_user: Default user to post as
+        default_channel: Default channel to post to
     """
 
     for res, sub in resources:
-        destinations = []
-        if sub.channels:
-            destinations.extend(sub.channels)
-        if sub.users:
-            for user in sub.users:
-                destinations.append(await find_user(user, slack_client))
-        if not destinations:
-            destinations.append(await find_user(default_user, slack_client))
-            destinations.append(default_channel)
-
+        destinations = await get_destinations(sub, slack_client, default_user, default_channel)
         if not destinations:
             raise NoDestinationError(sub)
 
@@ -273,7 +304,7 @@ async def send_slack_posts(resources: list[Tuple[resource.Resource, subscription
                     unfurl_links=False,
                     unfurl_media=False,
                     text=f'New resource: {res.title}',
-                    icon_emoji=':chart_with_upwards_trend:')
+                )
                 post_timestamp = post.get('ts')
                 thread_post = slack_builder.build_thread_message(res, sub)
                 slack_client.chat_postMessage(
@@ -282,9 +313,8 @@ async def send_slack_posts(resources: list[Tuple[resource.Resource, subscription
                     blocks=json.dumps(thread_post),
                     unfurl_links=False,
                     unfurl_media=False,
-                    text=f'Resource summary: {res.title}')
-                logger.info(f"Posted to Slack: {res.title} - {post_timestamp}")
+                    text=f'Resource summary: {res.title}'
+                )
+                logger.info(f'Resource posted to {dest}: {res.title} - {post_timestamp}')
             except SlackApiError as e:
-                logger.error(f"Error posting to Slack: {e}")
-            except Exception as e:
-                raise e
+                logger.error(f'Error posting to Slack: {e}')

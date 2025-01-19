@@ -10,6 +10,13 @@ from typing import List, Dict, Union, Optional
 
 
 @dataclass(slots=True)
+class SlackConfig:
+    """Slack users and channels to send messages to"""
+    users: Optional[List[str]]
+    channels: Optional[List[str]]
+
+
+@dataclass(slots=True)
 class Subscription:
     """Subscription for Talkback resources"""
     subscription_type: str
@@ -17,8 +24,7 @@ class Subscription:
     rank: Union[int, float]
     resource_types: List[str]
     curated: bool
-    users: Optional[List[str]]
-    channels: Optional[List[str]]
+    slack_destinations: Optional[SlackConfig]
 
     def __post_init__(self):
         """Validate types of fields after initialisation."""
@@ -42,6 +48,14 @@ def create_subscription_from_dict(subscription_dict: Dict) -> Subscription:
     except (ValueError, TypeError):
         rank = 80.00
 
+    if subscription_dict.get('slack'):
+        slack_config = SlackConfig(
+            users=subscription_dict.get('slack').get('users'),
+            channels=subscription_dict.get('slack').get('channels')
+        )
+    else:
+        slack_config = None
+
     return Subscription(
         subscription_type=subscription_dict.get('subscription_type'),
         name=subscription_dict.get('name'),
@@ -50,6 +64,5 @@ def create_subscription_from_dict(subscription_dict: Dict) -> Subscription:
             'types',
             ['post', 'news', 'oss', 'video', 'paper', 'slides', 'n_a']),
         curated=subscription_dict.get('curated', False),
-        users=subscription_dict.get('users', None),
-        channels=subscription_dict.get('channels', None)
+        slack_destinations=slack_config
     )

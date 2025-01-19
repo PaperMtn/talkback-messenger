@@ -12,17 +12,21 @@ from talkback_messenger.models import subscription
 
 
 @dataclass(slots=True)
-class Config:
-    """Configuration for the application"""
+class SlackDefaults:
+    """Slack defaults for the application"""
     default_user: Optional[str]
     default_channel: str
+
+
+@dataclass(slots=True)
+class Config:
+    """Configuration for the application"""
+    slack_defaults: Optional[SlackDefaults]
     subscriptions: List[subscription.Subscription]
 
     def __post_init__(self):
         """Validate types of fields after initialisation."""
         expected_types = {
-            'default_user': str,
-            'default_channel': str,
             'subscriptions': list
         }
 
@@ -39,7 +43,8 @@ def create_config_from_dict(config_dict: dict) -> Config:
     """Create Config object from dictionary"""
 
     return Config(
-        default_user=config_dict.get('default_user'),
-        default_channel=config_dict.get('default_channel'),
+        slack_defaults=SlackDefaults(
+            default_user=config_dict.get('slack').get('default_user'),
+            default_channel=config_dict.get('slack').get('default_channel')),
         subscriptions=config_dict.get('subscriptions', [])
     )
