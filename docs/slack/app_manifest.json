@@ -1,0 +1,30 @@
+{
+    "display_information": {
+        "name": "Talkback Slack Bot",
+        "description": "Bot for posting collected resources from talkback.sh to Slack",
+        "background_color": "#30003d"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "Talkback Slack Bot",
+            "always_online": false
+        }
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "chat:write",
+                "chat:write.public",
+                "links:write",
+                "im:write",
+                "users:read",
+                "users:read.email"
+            ]
+        }
+    },
+    "settings": {
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}
