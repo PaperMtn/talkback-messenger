@@ -32,6 +32,8 @@ def build_slack_post(resource: Resource) -> List[Dict[Any, Any]]:
     if resource.type == 'oss':
         resource.type = 'Open Source Software'
 
+    created_date = resource.created_date.strftime('%Y-%m-%d %H:%M:%S')
+
     if len(resource.title) > 150:
         header = {
             'type': 'section',
@@ -61,6 +63,11 @@ def build_slack_post(resource: Resource) -> List[Dict[Any, Any]]:
                 {
                     'type': 'mrkdwn',
                     'text': f':book:* Time to read*: {resource.readtime} mins'
+                },
+                {
+                    'type': 'mrkdwn',
+                    'text': f':clock1: *Indexed*: `{created_date}`'
+
                 },
                 {
                     'type': 'mrkdwn',
