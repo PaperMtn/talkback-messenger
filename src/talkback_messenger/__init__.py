@@ -10,6 +10,7 @@ from slack_sdk import WebClient
 from gql.transport.exceptions import TransportQueryError
 
 from talkback_messenger import talkback_bot_core
+from talkback_messenger.exceptions import TalkbackAPIError, MissingEnvVarError
 from talkback_messenger.models import subscription, resource
 from talkback_messenger.utils import init_logger, load_config
 from talkback_messenger.clients.talkback_client import TalkbackClient
@@ -73,10 +74,9 @@ async def validate_environment_variables():
         and raise an error if not
     """
 
-    if not os.getenv('TALKBACK_API_TOKEN'):
-        raise ValueError('TALKBACK_API_TOKEN environment variable not set')
-    if not os.getenv('SLACK_API_TOKEN'):
-        raise ValueError('SLACK_API_TOKEN environment variable not set')
+    for env_var in ['TALKBACK_API_TOKEN', 'SLACK_API_TOKEN']:
+        if not os.getenv(env_var):
+            raise MissingEnvVarError(env_var)
 
 
 async def validate_token(talkback_client: TalkbackClient) -> TalkbackClient:
@@ -86,9 +86,9 @@ async def validate_token(talkback_client: TalkbackClient) -> TalkbackClient:
         await talkback_client.validate_token()
     except TransportQueryError as e:
         if e.errors[0].get('message') == 'Signature has expired':
-                raise ValueError('Talkback API Token has expired')
+            raise TalkbackAPIError('Talkback API Token has expired') from e
         else:
-            raise ValueError('Talkback API token is invalid')
+            raise TalkbackAPIError('Talkback API token is invalid') from e
 
     new_token = await talkback_client.refresh_token()
     new_token = new_token.get('refreshToken').get('token')

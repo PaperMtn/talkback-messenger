@@ -29,3 +29,28 @@ class NoDestinationError(Exception):
         self.message = (f'No destination provided for the subscription {subscription.category} - {subscription.name}.'
                         f' Please provide a destination for the message')
         super().__init__(self.message)
+
+
+class TalkbackAPIError(Exception):
+    """Raised when the Talkback API returns an error
+
+    Args:
+        message: Error message
+    """
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
+class MissingEnvVarError(Exception):
+    """Exception raised when an environment variable is missing.
+
+    Args:
+        env_var: Name of the environment variable that is missing
+    """
+
+    def __init__(self, env_var):
+        self.env_var = env_var
+        self.message = f'Missing Environment Variable: {self.env_var}'
+        super().__init__(self.message)
