@@ -263,13 +263,17 @@ async def get_destinations(sub: subscription.Subscription,
     """
 
     destinations = []
-    if sub.slack_destinations.channels:
+    try:
         destinations.extend(sub.slack_destinations.channels)
-    if sub.slack_destinations.users:
+    except AttributeError:
+        pass
+    try:
         for user in sub.slack_destinations.users:
             user_id = await validate_slack_user_id(user, slack_client)
             if user_id:
                 destinations.append(user_id)
+    except AttributeError:
+        pass
     if not destinations:
         destinations.append(await validate_slack_user_id(default_user, slack_client))
         destinations.append(default_channel)
