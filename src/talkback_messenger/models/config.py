@@ -42,9 +42,15 @@ class Config:
 def create_config_from_dict(config_dict: dict) -> Config:
     """Create Config object from dictionary"""
 
-    return Config(
-        slack_defaults=SlackDefaults(
+    if config_dict.get('slack'):
+        slack_config = SlackDefaults(
             default_user=config_dict.get('slack').get('default_user'),
-            default_channel=config_dict.get('slack').get('default_channel')),
+            default_channel=config_dict.get('slack').get('default_channel')
+        )
+    else:
+        slack_config = None
+
+    return Config(
+        slack_defaults=slack_config,
         subscriptions=config_dict.get('subscriptions', [])
     )
