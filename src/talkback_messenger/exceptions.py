@@ -11,9 +11,9 @@ class NoConfigFoundError(Exception):
 
     def __init__(self):
         self.message = '''
-        No config file found. Please provide a path to a talkback.conf file using the --config argument.
+        No config file found. Please provide a path to a talkback.yml file using the --config argument.
         If you are running the app in a container, make sure to mount the config file
-        at /etc/talkback-messenger/talkback.conf
+        at /etc/talkback-messenger/talkback.yml
         '''
         super().__init__(self.message)
 
@@ -26,8 +26,28 @@ class NoDestinationError(Exception):
     """
 
     def __init__(self, subscription):
-        self.message = (f'No destination provided for the subscription {subscription.category} - {subscription.name}.'
+        self.message = (f'No destination provided for the subscription {subscription.category} - {subscription.query}.'
                         f' Please provide a destination for the message')
+        super().__init__(self.message)
+
+
+class InvalidSubscriptionError(Exception):
+    """Raised when a subscription is configured incorrectly
+    """
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
+class MissingSubscriptionsError(Exception):
+    """Raised when subscriptions are missing from the configuration
+    """
+
+    def __init__(self):
+        self.message = ('The configuration file is missing entries under the `subscriptions` key. Please '
+                        'check the configuration file and ensure that the `subscriptions` key is present '
+                        'with at least one subscription entry.')
         super().__init__(self.message)
 
 

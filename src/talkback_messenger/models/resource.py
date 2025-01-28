@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Dict, Union
 
+from talkback_messenger.models.utils import validate_fields
+
 
 @dataclass(slots=True)
 class Topic:
@@ -50,8 +52,7 @@ class Resource:
     vendors: List[str]
 
     def __post_init__(self):
-        """Validate types of fields after initialisation."""
-        expected_types = {
+        validate_fields(self, {
             'id': str,
             'url': str,
             'talkback_url': str,
@@ -61,7 +62,7 @@ class Resource:
             'domain': str,
             'curators': list,
             'categories': list,
-            'rank': Union[int, float, str],
+            'rank': (int, float, str),
             'tier': int,
             'readtime': int,
             'synopsis': str,
@@ -69,15 +70,7 @@ class Resource:
             'topics': list,
             'vulnerabilities': list,
             'vendors': list
-        }
-
-        for field_name, expected_type in expected_types.items():
-            value = getattr(self, field_name)
-            if value is not None and not isinstance(value, expected_type):
-                raise TypeError(
-                    f'Expected `{field_name}` to be of type {expected_type}, '
-                    f'received {type(value).__name__}'
-                )
+        })
 
 
 def create_resource_from_dict(resource_dict: Dict) -> Resource:

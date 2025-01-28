@@ -7,8 +7,8 @@ def test_config_initialisation(mock_config):
     assert isinstance(mock_config, config.Config)
 
     # Test that the config object has the correct attributes
-    assert mock_config.default_user == 'tobias.funke@example.com'
-    assert mock_config.default_channel == 'C01234567'
+    assert mock_config.slack_defaults.default_user == 'tobias.funke@example.com'
+    assert mock_config.slack_defaults.default_channel == 'C01234567'
     assert len(mock_config.subscriptions) == 1
 
 
@@ -22,7 +22,6 @@ def test_config_creation_missing_fields(mock_subscription):
 
     assert isinstance(mock_config, config.Config)
 
-    assert mock_config.default_user is None
-    assert mock_config.default_channel is None
+    assert mock_config.slack_defaults is None
     assert len(mock_config.subscriptions) == 1
     assert mock_config.subscriptions[0] == mock_subscription

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from talkback_messenger.models import subscription
+from talkback_messenger.models.utils import validate_fields
 
 
 @dataclass(slots=True)
@@ -25,18 +26,9 @@ class Config:
     subscriptions: List[subscription.Subscription]
 
     def __post_init__(self):
-        """Validate types of fields after initialisation."""
-        expected_types = {
+        validate_fields(self, {
             'subscriptions': list
-        }
-
-        for field_name, expected_type in expected_types.items():
-            value = getattr(self, field_name)
-            if value is not None and not isinstance(value, expected_type):
-                raise TypeError(
-                    f'Expected `{field_name}` to be of type {expected_type}, '
-                    f'received {type(value).__name__}'
-                )
+        })
 
 
 def create_config_from_dict(config_dict: dict) -> Config:

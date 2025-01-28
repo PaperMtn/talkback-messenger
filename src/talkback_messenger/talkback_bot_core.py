@@ -9,7 +9,7 @@ This includes:
 
 Typical usage example:
     from talkback_messenger import talkback_bot_core
-    app_config = await talkback_bot_core.load_app_config('talkback.conf')
+    app_config = await talkback_bot_core.load_app_config('talkback.yml')
     resources = await talkback_bot_core.get_subscribed_content(talkback_client, app_config.subscriptions)
     await talkback_bot_core.send_slack_posts(resources)
 """
@@ -25,9 +25,14 @@ from slack_sdk.errors import SlackApiError
 from talkback_messenger import resource_enricher
 from talkback_messenger import slack_builder
 from talkback_messenger.clients.talkback_client import TalkbackClient
-from talkback_messenger.exceptions import NoConfigFoundError, NoDestinationError
 from talkback_messenger.models import resource, subscription, config
 from talkback_messenger.utils import load_config, deduplicate_results
+from talkback_messenger.exceptions import (
+    NoConfigFoundError,
+    NoDestinationError,
+    MissingSubscriptionsError,
+    InvalidSubscriptionError
+)
 
 
 async def load_app_config(filepath: str) -> config.Config:
@@ -38,6 +43,7 @@ async def load_app_config(filepath: str) -> config.Config:
     Returns:
         List of Subscription objects
     """
+    #TODO - Deal with incorrectly formatted config
 
     app_config = load_config(filepath)
     if not app_config:
@@ -53,9 +59,15 @@ async def load_app_config(filepath: str) -> config.Config:
     }
 
     for sub_type, config_key in subscription_types.items():
-        for sub in app_config.get(config_key, []):
+        for sub in app_config.get('subscriptions').get(config_key, []):
             sub['subscription_type'] = sub_type
-            subscriptions.append(subscription.create_subscription_from_dict(sub))
+            try:
+                subscriptions.append(subscription.create_subscription_from_dict(sub))
+            except InvalidSubscriptionError as e:
+                logger.error(f'Error creating subscription: {e}')
+                continue
+            except MissingSubscriptionsError as e:
+                raise e
     talkback_config = config.Config(
         slack_defaults=config.SlackDefaults(
             default_user=app_config.get('slack').get('default_user'),
@@ -113,17 +125,17 @@ def filter_resource(res: resource.Resource, sub: subscription.Subscription) -> b
     """
 
     def _common_checks(r: resource.Resource, s: subscription.Subscription) -> bool:
-        if r.rank < s.rank:
+        if r.rank < s.filters.rank:
             logger.debug(f'RANK - Resource `{r.title}` rank {r.rank} is lower than subscription '
-                         f'`{s.subscription_type}: {s.name}` rank: {s.rank}')
+                         f'`{s.subscription_type}: {s.query}` rank: {s.filters.rank}')
             return False
-        if r.type not in s.resource_types:
+        if r.type not in s.filters.resource_types:
             logger.debug(f'TYPE - Resource `{r.title}` type {r.type} not in subscription '
-                         f'`{s.subscription_type}: {s.name}` types {s.resource_types}')
+                         f'`{s.subscription_type}: {s.query}` types {s.filters.resource_types}')
             return False
-        if s.curated and not r.curators:
+        if s.filters.curated and not r.curators:
             logger.debug(f'CURATION - Resource `{r.title}` is not curated, the subscription '
-                         f'`{s.subscription_type}: {s.name}` requires curated resources')
+                         f'`{s.subscription_type}: {s.query}` requires curated resources')
             return False
         return True
 
@@ -133,15 +145,15 @@ def filter_resource(res: resource.Resource, sub: subscription.Subscription) -> b
     if sub.subscription_type == 'query':
         return True
     elif sub.subscription_type == 'category':
-        return sub.name.lower() in (r.lower() for r in res.categories)
+        return sub.query.lower() in (r.lower() for r in res.categories)
     elif sub.subscription_type == 'topic':
-        return sub.name.lower() in (r.title.lower() for r in res.topics)
+        return sub.query.lower() in (r.title.lower() for r in res.topics)
     elif sub.subscription_type == 'source':
-        return sub.name.lower() in res.domain.lower()
+        return sub.query.lower() in res.domain.lower()
     elif sub.subscription_type == 'vendor':
-        return sub.name.lower() in (r.lower() for r in res.vendors)
+        return sub.query.lower() in (r.lower() for r in res.vendors)
     elif sub.subscription_type == 'vulnerability':
-        return sub.name.lower() in (r.name.lower() for r in res.vulnerabilities)
+        return sub.query.lower() in (r.name.lower() for r in res.vulnerabilities)
     else:
         return False
 
@@ -163,7 +175,7 @@ async def query_search(talkback_client: TalkbackClient,
 
     search_results = await find_resources(
         talkback_client,
-        sub_object.name,
+        sub_object.query,
         created_after,
         created_before)
     return [res for res in search_results if filter_resource(res, sub_object)]

@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 from talkback_messenger.models import config, subscription, resource
@@ -5,95 +7,133 @@ from talkback_messenger.models import config, subscription, resource
 
 class MockData:
     MOCK_CONFIG = {
-        "default_user": "tobias.funke@example.com",
-        "default_channel": "C01234567",
-        "categories": [
-            {
-                "name": "application security",
-                "rank": 20,
-                "types": [
-                    "post",
-                    "news"
-                ],
-                "curated": True
-            },
-            {
-                "name": "cloud security",
-                "rank": 20,
-                "types": [
-                    "post",
-                    "news"
-                ],
-                "users": [
-                    "tobias.funke@example.com"
-                ],
-                "channels": [
-                    "C01234567"
-                ]
-            }
-        ],
-        "topics": [
-            {
-                "name": "chrome",
-                "rank": 20
-            },
-            {
-                "name": "firefox",
-                "rank": 20
-            }
-        ],
-        "sources": [
-            {
-                "name": "papermtn.co.uk",
-                "rank": 60
-            },
-            {
-                "name": "github.com/PaperMtn",
-                "rank": 20
-            }
-        ],
-        "vendors": [
-            {
-                "name": "google",
-                "rank": 20
-            }
-        ],
-        "vulnerabilities": [
-            {
-                "name": "CVE-2023-1234",
-                "rank": 20,
-                "types": [
-                    "post",
-                    "news"
-                ]
-            }
-        ],
-        "queries": [
-            {
-                "name": "title:slack",
-                "rank": 50,
-                "types": [
-                    "post",
-                    "oss"
-                ]
-            }
-        ]
+        'slack': {
+            'default_channel': 'C01234567',
+            'default_user': 'tobias.funke@example.com'
+        },
+        'subscriptions': {
+            'sources': [
+                {
+                    'query': 'papermtn.co.uk',
+                    'id': 'Papermtn',
+                    'filters': {
+                        'rank': 60
+                    }
+                },
+                {
+                    'query': 'github.com/PaperMtn',
+                    'id': 'GitHub PaperMtn',
+                    'filters': {
+                        'rank': 20
+                    }
+                }
+            ],
+            'vendors': [
+                {
+                    'query': 'google',
+                    'id': 'Google',
+                    'filters': {
+                        'rank': 20
+                    }
+                }
+            ],
+            'queries': [
+                {
+                    'query': 'title:slack',
+                    'id': 'Slack Posts',
+                    'filters': {
+                        'resource_types': [
+                            'post',
+                            'oss'
+                        ],
+                        'rank': 50
+                    }
+                }
+            ],
+            'vulnerabilities': [
+                {
+                    'query': 'CVE-2023-1234',
+                    'id': 'CVE-2023-1234',
+                    'filters': {
+                        'resource_types': [
+                            'post',
+                            'news'
+                        ],
+                        'rank': 20
+                    }
+                }
+            ],
+            'topics': [
+                {
+                    'query': 'chrome',
+                    'id': 'Chrome',
+                    'filters': {
+                        'rank': 20
+                    }
+                },
+                {
+                    'query': 'firefox',
+                    'id': 'Firefox',
+                    'filters': {
+                        'rank': 20
+                    }
+                }
+            ],
+            'categories': [
+                {
+                    'query': 'application security',
+                    'id': 'Application Security Posts',
+                    'filters': {
+                        'resource_types': [
+                            'post',
+                            'news'
+                        ],
+                        'curated': True,
+                        'rank': 20
+                    }
+                },
+                {
+                    'query': 'cloud security',
+                    'filters': {
+                        'resource_types': [
+                            'post',
+                            'news'
+                        ],
+                        'rank': 20
+                    },
+                    'id': 'Cloud Security Posts',
+                    'slack_destinations': {
+                        'channels': [
+                            'C01234567'
+                        ],
+                        'users': [
+                            'tobias.funke@example.com'
+                        ]
+                    }
+                }
+            ]
+        }
     }
 
     MOCK_SUBSCRIPTION = {
         'subscription_type': 'category',
-        "name": "cloud security",
-        "rank": 20,
-        "types": [
-            "post",
-            "news"
-        ],
-        "users": [
-            "tobias.funke@example.com"
-        ],
-        "channels": [
-            "C01234567"
-        ]
+        'id': 'Cloud Security Posts',
+        'query': 'cloud security',
+        'filters': {
+            'resource_types': [
+                'post',
+                'news'
+            ],
+            'rank': 20
+        },
+        'slack_destinations': {
+            'channels': [
+                'C01234567'
+            ],
+            'users': [
+                'tobias.funke@example.com'
+            ]
+        }
     }
 
     MOCK_RESOURCE = {
@@ -164,11 +204,9 @@ def mock_subscription():
 
 @pytest.fixture
 def mock_config(mock_subscription):
-    return config.Config(
-        default_user=MockData.MOCK_CONFIG['default_user'],
-        default_channel=MockData.MOCK_CONFIG['default_channel'],
-        subscriptions=[mock_subscription]
-    )
+    config_data = copy.deepcopy(MockData.MOCK_CONFIG)
+    config_data['subscriptions'] = [mock_subscription]
+    return config.create_config_from_dict(config_data)
 
 
 @pytest.fixture

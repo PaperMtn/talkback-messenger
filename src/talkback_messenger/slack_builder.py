@@ -178,7 +178,7 @@ def build_thread_message(resource: Resource, subscription: Subscription) -> List
                     'type': 'mrkdwn',
                     'text': f'*Meta:* \nTalkback URL: <{resource.talkback_url}|{resource.talkback_url}>'
                             f'\nRank: `{resource.rank}`\nSubscription: `{subscription.subscription_type}: '
-                            f'{subscription.name}`'
+                            f'{subscription.query}`'
                 }
             ]
         }

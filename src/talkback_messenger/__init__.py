@@ -103,7 +103,7 @@ async def main_coroutine():
 
     try:
         version = metadata.version('talkback-messenger')
-        parser = argparse.ArgumentParser(description='Talkback Slack Bot')
+        parser = argparse.ArgumentParser(description='Talkback Messenger')
         parser.add_argument(
             '-v', '--version',
             action='version',
@@ -154,8 +154,8 @@ async def main_coroutine():
 
         logger.info('Importing subscriptions')
         if not config_path:
-            logger.info('No config path provided. Attempting to load from /etc/talkback-messenger/talkback.conf')
-            config_path = '/etc/talkback-messenger/talkback.conf'
+            logger.info('No config path provided. Attempting to load from /etc/talkback-messenger/talkback.yml')
+            config_path = '/etc/talkback-messenger/talkback.yml'
         app_config = await talkback_bot_core.load_app_config(config_path)
         logger.info(f'{len(app_config.subscriptions)} subscriptions imported')
         for sub in app_config.subscriptions:

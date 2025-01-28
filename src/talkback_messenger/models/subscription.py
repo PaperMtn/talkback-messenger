@@ -5,45 +5,41 @@ Typical usage example:
     sub = subscription.create_subscription_from_dict(subscription_dict)
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Dict, Union, Optional
+
+from talkback_messenger.exceptions import InvalidSubscriptionError, MissingSubscriptionsError
+from talkback_messenger.models.utils import validate_fields
+
+DEFAULT_RANK = 80.00
+DEFAULT_RESOURCE_TYPES = ['post', 'news', 'oss', 'video', 'paper', 'slides', 'n_a']
+DEFAULT_CURATED = False
 
 
 @dataclass(slots=True)
 class SlackConfig:
     """Slack users and channels to send messages to"""
-    users: Optional[List[str]]
-    channels: Optional[List[str]]
+    users: Optional[List[str]] = field(default_factory=list)
+    channels: Optional[List[str]] = field(default_factory=list)
 
     def __post_init__(self):
-        """Validate types of fields after initialisation."""
-        expected_types = {
-            'users': list,
-            'channels': list
-        }
+        validate_fields(self, {'users': list, 'channels': list})
 
-        for field, expected_type in expected_types.items():
-            if not isinstance(getattr(self, field), expected_type):
-                raise TypeError(f"Expected {field} to be of type {expected_type}")
 
 @dataclass(slots=True)
 class Filters:
     """Filters to use with the subscription to narrow down resources"""
-    rank: Optional[Union[int, float]]
-    resource_types: Optional[List[str]]
-    curated: Optional[bool]
+    rank: Optional[Union[int, float]] = DEFAULT_RANK
+    resource_types: Optional[List[str]] = field(default_factory=lambda: DEFAULT_RESOURCE_TYPES)
+    curated: Optional[bool] = DEFAULT_CURATED
 
     def __post_init__(self):
-        """Validate types of fields after initialisation."""
-        expected_types = {
+        validate_fields(self, {
             'rank': (int, float),
             'resource_types': list,
             'curated': bool
-        }
+        })
 
-        for field, expected_type in expected_types.items():
-            if not isinstance(getattr(self, field), expected_type):
-                raise TypeError(f"Expected {field} to be of type {expected_type}")
 
 @dataclass(slots=True)
 class Subscription:
@@ -52,52 +48,71 @@ class Subscription:
     id: str
     query: str
     filters: Filters
-    slack_destinations: Optional[SlackConfig]
+    slack_destinations: Optional[SlackConfig] = None
 
     def __post_init__(self):
-        """Validate types of fields after initialisation."""
-        expected_types = {
+        validate_fields(self, {
             'subscription_type': str,
             'id': str,
             'query': str
-        }
+        })
 
-        for field, expected_type in expected_types.items():
-            if not isinstance(getattr(self, field), expected_type):
-                raise TypeError(f"Expected {field} to be of type {expected_type}")
+
+def _create_filters(filters_dict: Dict) -> Filters:
+    """Create Filters object from a dictionary."""
+    rank = filters_dict.get('rank', DEFAULT_RANK)
+    try:
+        rank = float(rank)
+    except (ValueError, TypeError):
+        rank = DEFAULT_RANK
+
+    return Filters(
+        rank=rank,
+        resource_types=filters_dict.get('resource_types', DEFAULT_RESOURCE_TYPES),
+        curated=filters_dict.get('curated', DEFAULT_CURATED))
+
+
+def _create_slack_config(slack_dict: Dict) -> SlackConfig:
+    """Create SlackConfig object from a dictionary."""
+    return SlackConfig(
+        users=slack_dict.get('users', []),
+        channels=slack_dict.get('channels', []))
 
 
 def create_subscription_from_dict(subscription_dict: Dict) -> Subscription:
-    """Create Subscription object from dictionary"""
+    """Create Subscription object from dictionary.
 
-    if subscription_dict.get('filters'):
-        try:
-            rank = float(subscription_dict.get('filters').get('rank', 80.00))
-        except (ValueError, TypeError):
-            rank = 80.00
+    Args:
+        subscription_dict: Dictionary containing subscription information
+    Returns:
+        Subscription object
+    Raises:
+        MissingSubscriptionsError: If subscription_dict is empty
+        InvalidSubscriptionError: If required fields are missing
+    """
 
-        filters = Filters(
-            rank=rank,
-            resource_types=subscription_dict.get('filters').get(
-                'resource_types',
-                ['post', 'news', 'oss', 'video', 'paper', 'slides', 'n_a']),
-            curated=subscription_dict.get('curated', False))
-    else:
-        filters = Filters(
-            rank=80.00,
-            resource_types=['post', 'news', 'oss', 'video', 'paper', 'slides', 'n_a'],
-            curated=False)
+    if not subscription_dict:
+        raise MissingSubscriptionsError()
 
+    required_fields = ['subscription_type', 'id', 'query']
+    for f in required_fields:
+        if f not in subscription_dict:
+            subscription_id = subscription_dict.get('id')
+            if subscription_id:
+                raise InvalidSubscriptionError(f'Subscription ID `{subscription_id}` '
+                                               f'missing required field: {f}')
+            else:
+                raise InvalidSubscriptionError(f'Missing required field: {f}')
+
+
+    filters = _create_filters(subscription_dict.get('filters', {}))
+    slack_destinations = None
     if subscription_dict.get('slack_destinations'):
-        slack_config = SlackConfig(
-            users=subscription_dict.get('slack_destinations').get('users'),
-            channels=subscription_dict.get('slack_destinations').get('channels'))
-    else:
-        slack_config = None
+        slack_destinations = _create_slack_config(subscription_dict.get('slack_destinations'))
 
     return Subscription(
         subscription_type=subscription_dict.get('subscription_type'),
         id=subscription_dict.get('id'),
         query=subscription_dict.get('query'),
         filters=filters,
-        slack_destinations=slack_config)
+        slack_destinations=slack_destinations)
