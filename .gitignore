@@ -126,4 +126,5 @@ dmypy.json
 
 # App specific
 *.csv
-talkback.conf
+talkback.yml
+*.ai

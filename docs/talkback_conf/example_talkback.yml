@@ -1,0 +1,65 @@
+---
+slack:
+  default_channel: C00ABCDEFG
+  default_user: papermtn@example.com
+subscriptions:
+  categories:
+    - id: Application Security Posts
+      query: application security
+      filters:
+        rank: 20
+        resource_types:
+          - post
+          - news
+        curated: true
+    - id: Cloud Security Posts
+      query: cloud security
+      filters:
+        rank: 20
+        resource_types:
+          - post
+          - news
+      slack_destinations:
+        users:
+          - papermtn@example.com
+        channels:
+          - C00ABCDEFG
+  topics:
+    - id: Chrome
+      query: chrome
+      filters:
+        rank: 20
+    - id: Firefox
+      query: firefox
+      filters:
+        rank: 20
+  sources:
+    - id: Papermtn
+      query: papermtn.co.uk
+      filters:
+        rank: 60
+    - id: GitHub PaperMtn
+      query: github.com/PaperMtn
+      filters:
+        rank: 20
+  vendors:
+    - id: Google
+      query: google
+      filters:
+        rank: 20
+  vulnerabilities:
+    - id: CVE-2023-1234
+      query: CVE-2023-1234
+      filters:
+        rank: 20
+        resource_types:
+          - post
+          - news
+  queries:
+    - id: Slack Posts
+      query: title:slack
+      filters:
+        rank: 50
+        resource_types:
+          - post
+          - oss

@@ -2,7 +2,7 @@
 
 Talkback Messenger is a in an application that collects the InfoSec content you're interested in from [talkback.sh](https://talkback.sh/), and posts it to Slack in a digestible format.
 
-<img src="/images/slack_screenshot.png" width="700">
+<img src="/images/slack_message.png" width="600">
 
 The app can be scheduled to run looking for content from the past 1 to 24 hours, and has a Docker container available for scheduling execution. This means you can run it regularly to give you a constant feed of content.
 # Contents
@@ -20,26 +20,26 @@ The app can be scheduled to run looking for content from the past 1 to 24 hours,
 
 ## About Talkback
 
----
-
-Talkback is a project developed by [elttam](https://www.elttam.com/) to help the community be more efficient and effective at keeping up with cyber-security content.
+Talkback is a project developed by [Elttam](https://www.elttam.com/) to help the community be more efficient and effective at keeping up with cyber-security content.
 
 It aggregates InfoSec resources from a number of sources, enriches them with metadata, including AI summaries and categorisation.
 
-You can find out more information about Talkback via blog posts and conference talks at [elttam's website](https://www.elttam.com/blog/talkback-intro/)
+You can find out more information about Talkback via blog posts and conference talks at [Elttam's website](https://www.elttam.com/blog/talkback-intro/)
 
 ## How it works
 
----
+Talkback Messenger uses the [Talkback API](https://talkback.sh/api/) to collect content, and then enriches this with information that isn't available using the API from scraping the resource webpage.
 
-Talkback Messenger uses the [Talkback API](https://talkback.sh/api/), and the concept of subscriptions, to find relevant resources for you from Talkback, then post them to a Slack channel of your choice.
+Using the concept of subscriptions, Talkback Messenger is able to find relevant resources for you from Talkback. These resources, if they meet the criteria you've set in your subscription, are then posted the Slack users/channels of your choice.
+
+The messages contain a digestible summary of the content, leveraging Talkback's AI summarisation and categorisation, as well as links to the original resource.
 
 ## Requirements
 ### Slack App with Bot Token
-To use the Talkback Messenger, you will need to create a Slack App and Bot Token. You can find instructions on how to do this [here](https://api.slack.com/authentication/basics).
+You will need to create a Slack App and Bot Token to use with Talkback Messenger. You can find instructions on how to do this [here](https://api.slack.com/authentication/basics).
 
 Your app will require the following scopes:
-```text
+```
 "chat:write",
 "chat:write.public",
 "links:write",
@@ -48,30 +48,82 @@ Your app will require the following scopes:
 "users:read.email"
 ```
 
-I've included an app manifest file that you can use to create your app in the directory [docs/slack/app_manifest.json](docs/slack/app_manifest.json).
+I've included an app manifest file that you can use to create your app in the directory [docs/slack/app_manifest.json](docs/slack/app_manifest.json). There is also an [app icon](./images/talkback_icon.png) you can use.
 
 Once you've installed your Slack app, generate and safely store your bot token.
+
+> [!Note]
+> To post to private Slack channels, you will need to first add the bot to the channel.
 
 ### Talkback API Token
 You will also need an API token for Talkback. You can find instructions on how to do this [here](https://talkback.sh/api/v1/help/).
 
 Generate and store the JWT for use with Talkback Messenger.
 
+> [!Important]
+> Currently, Talkback API tokens expire after 7 days. You will need to regenerate a new token once it expires.
+
 ### Configuration File
-Finally, you will also need to generate a `talkback.conf` configuration file. This file defines what content you want to collect from Talkback, and where you want to post it. In-depth instructions on how to create this file can be found [here](./docs/talkback_conf).
+Lastly, you will need to generate a `talkback.yml` configuration file. This file defines what content you want to collect from Talkback, and where you want to post it. In-depth instructions on how to create this file can be found [here](./docs/talkback_conf).
 
-An example configuration has also been included in the directory [docs/talkback_conf](docs/talkback_conf/example_talkback.conf).
+An example configuration has also been included in the directory [docs/talkback_conf](docs/talkback_conf/example_talkback.yml).
 ## Installation
+Talkback Messanger can be installed via pipx from PyPi:
+
+```bash
+pipx install talkback-messanger
+```
+
+There is also a Docker container available on DockerHub:
+
+```bash
+docker pull papermtn/talkback-messenger
+```
+
 ## Usage
+
+Talkback Messenger can be run from the command line with the following options:
+```bash
+usage: talkback-messenger [-h] [-v] [--config CONFIG] --timeframe {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24} [--debug]
+
+Talkback Messenger
+
+options:
+  -h, --help            show this help message and exit
+  -v, --version         show programs version number and exit
+  --config CONFIG       Path to the configuration file. Do not use if you are running in a container and have mounted the config file
+  --timeframe {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}
+                        How many hours back to search (1-24)
+  --debug, -d           Turn on debug level logging
+```
+
+Example:
+```bash
+talkback-messenger --config /path/to/talkback.yml --timeframe 1
+```
+
 ### Docker/Containerised
+Talkback Messanger has been designed to also run in a container, meaning you can schedule it to run at regular intervals to keep you up to date with the latest content.
 
+You will need to pass the configuration file to the container by mounting it as a volume. Talkback Messenger will look for the configuration file at `/etc/talkback-messenger/talkback.yml`.
 
+To run the Docker container, you can use the following command:
+```bash
+docker run -v /path/to/talkback.yml:/etc/talkback-messenger/talkback.yml papermtn/talkback-messenger --timeframe 1
+```
 
-
+> [!Important]
+> The config file must be mounted in the following path: `/etc/talkback-messenger/talkback.yml`
+> 
+> The `--config` option is not required if you are running the container and have mounted the configuration file.
 
 ## Future additions
+Talkback Messenger is a work in progress, and currently in pre-release.
+
 Possible future additions to the app include: 
 - [x] Add the ability to post to multiple channels
 - [x] Add posting to individual users via DM from the bot
 - [x] Add channels and users as destinations for specific subscriptions
 - [ ] Add integration with Microsoft Teams
+
+If you have any suggestions or feature requests, please feel free to open an issue.

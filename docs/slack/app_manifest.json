@@ -2,7 +2,7 @@
     "display_information": {
         "name": "Talkback Slack Bot",
         "description": "Bot for posting collected resources from talkback.sh to Slack",
-        "background_color": "#30003d"
+        "background_color": "#253a48"
     },
     "features": {
         "bot_user": {
