@@ -1,7 +1,7 @@
 # Talkback Messenger
 ![Python 2.7 and 3 compatible](https://img.shields.io/pypi/pyversions/talkback-messenger)
 ![PyPI version](https://img.shields.io/pypi/v/talkback-messenger.svg)
-![License: GNU AGPLv3](https://img.shields.io/pypi/l/talkback-messenger.svg)
+![License: MIT](https://img.shields.io/pypi/l/talkback-messenger.svg)
 
 Talkback Messenger is an application that finds the InfoSec content you're interested in from [talkback.sh](https://talkback.sh/), and posts it to Slack in a digestible format.
 

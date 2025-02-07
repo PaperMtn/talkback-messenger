@@ -1,9 +1,20 @@
 [tool.poetry]
 name = "talkback-messenger"
 version = "0.9.0"
-description = ""
+description = "Finds the InfoSec content you're interested in from talkback.sh, and posts it to Slack in a digestible format."
 authors = ["PaperMtn <papermtn@protonmail.com>"]
 readme = "README.md"
+license = "GPL-3.0"
+homepage = "https://github.com/PaperMtn/talkback-messenger"
+repository = "https://github.com/PaperMtn/talkback-messenger"
+keywords = [ "infosec", "security", "slack", "OSINT", "talkback" ]
+classifiers = [
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+
+[tool.poetry.urls]
+"Blog" = "https://papermtn.co.uk/category/tools/talkback-messenger/"
 
 [tool.poetry.dependencies]
 python = "^3.12"
