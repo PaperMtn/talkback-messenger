@@ -1,10 +1,17 @@
 # Talkback Messenger
+![Python 2.7 and 3 compatible](https://img.shields.io/pypi/pyversions/talkback-messenger)
+![PyPI version](https://img.shields.io/pypi/v/talkback-messenger.svg)
+![License: GNU AGPLv3](https://img.shields.io/pypi/l/talkback-messenger.svg)
 
-Talkback Messenger is a in an application that collects the InfoSec content you're interested in from [talkback.sh](https://talkback.sh/), and posts it to Slack in a digestible format.
+Talkback Messenger is an application that finds the InfoSec content you're interested in from [talkback.sh](https://talkback.sh/), and posts it to Slack in a digestible format.
 
 <img src="/images/slack_message.png" width="600">
 
 The app can be scheduled to run looking for content from the past 1 to 24 hours, and has a Docker container available for scheduling execution. This means you can run it regularly to give you a constant feed of content.
+
+> [!Note]
+> Talkback Messenger is currently in beta. If you use it and find any bugs, please [open an issue](https://github.com/PaperMtn/talkback-messenger/issues)
+
 # Contents
 
 - [About Talkback](#about-talkback)
@@ -22,15 +29,15 @@ The app can be scheduled to run looking for content from the past 1 to 24 hours,
 
 Talkback is a project developed by [Elttam](https://www.elttam.com/) to help the community be more efficient and effective at keeping up with cyber-security content.
 
-It aggregates InfoSec resources from a number of sources, enriches them with metadata, including AI summaries and categorisation.
+It aggregates InfoSec resources from a number of sources and enriches them with metadata, including AI summaries and categorisation.
 
 You can find out more information about Talkback via blog posts and conference talks at [Elttam's website](https://www.elttam.com/blog/talkback-intro/)
 
 ## How it works
 
-Talkback Messenger uses the [Talkback API](https://talkback.sh/api/) to collect content, and then enriches this with information that isn't available using the API from scraping the resource webpage.
+Talkback Messenger uses the [Talkback API](https://talkback.sh/api/) to collect content, and then enriches this with information that isn't available using the API by scraping the resource webpage.
 
-Using the concept of subscriptions, Talkback Messenger is able to find relevant resources for you from Talkback. These resources, if they meet the criteria you've set in your subscription, are then posted the Slack users/channels of your choice.
+Using the concept of subscriptions, Talkback Messenger is able to find resources that are relevant to you. These resources, if they meet the criteria you've set in your subscription, are then posted the Slack users/channels of your choice.
 
 The messages contain a digestible summary of the content, leveraging Talkback's AI summarisation and categorisation, as well as links to the original resource.
 

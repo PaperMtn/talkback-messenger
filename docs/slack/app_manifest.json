@@ -1,12 +1,12 @@
 {
     "display_information": {
-        "name": "Talkback Slack Bot",
+        "name": "Talkback Messenger",
         "description": "Bot for posting collected resources from talkback.sh to Slack",
         "background_color": "#253a48"
     },
     "features": {
         "bot_user": {
-            "display_name": "Talkback Slack Bot",
+            "display_name": "Talkback Messenger",
             "always_online": false
         }
     },
