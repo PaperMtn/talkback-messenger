@@ -74,12 +74,12 @@ async def validate_environment_variables():
         and raise an error if not
     """
 
-    for env_var in ['TALKBACK_API_TOKEN', 'SLACK_API_TOKEN']:
+    for env_var in ['TALKBACK_EMAIL', 'TALKBACK_PASSWORD', 'SLACK_API_TOKEN']:
         if not os.getenv(env_var):
             raise MissingEnvVarError(env_var)
 
 
-async def validate_token(talkback_client: TalkbackClient) -> TalkbackClient:
+async def validate_token(talkback_client: TalkbackClient):
     """Validate the Talkback API token"""
 
     try:
@@ -89,11 +89,6 @@ async def validate_token(talkback_client: TalkbackClient) -> TalkbackClient:
             raise TalkbackAPIError('Talkback API Token has expired') from e
         else:
             raise TalkbackAPIError('Talkback API token is invalid') from e
-
-    new_token = await talkback_client.refresh_token()
-    new_token = new_token.get('refreshToken').get('token')
-    talkback_client.token = new_token
-    return talkback_client
 
 
 async def main_coroutine():
@@ -148,8 +143,8 @@ async def main_coroutine():
             created_after = start_of_previous_day.isoformat()
             created_before = end_of_previous_day.isoformat()
 
-        talkback_client = TalkbackClient('https://talkback.sh/api/v1/', os.getenv('TALKBACK_API_TOKEN'))
-        talkback_client = await validate_token(talkback_client)
+        talkback_client = TalkbackClient(os.getenv('TALKBACK_EMAIL'), os.getenv('TALKBACK_PASSWORD'))
+        await validate_token(talkback_client)
         slack_client = await init_slack_client()
 
         logger.info('Importing subscriptions')

@@ -12,8 +12,11 @@ Typical usage example:
 from datetime import datetime
 from typing import Any, Dict, List
 
+import requests
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
+
+from talkback_messenger.exceptions import TalkbackAuthenticationError
 
 
 class TalkbackClient:
@@ -24,9 +27,15 @@ class TalkbackClient:
         token: JWT token for the Talkback API
     """
 
-    def __init__(self, api_url, token):
-        self.api_url = api_url
-        self.token = token
+    def __init__(self, email: str, password: str):
+        """ Initialise the TalkbackClient object
+
+        Args:
+            email: Talkback username
+            password: Talkback password
+        """
+        self.api_url = 'https://talkback.sh/api/v1/'
+        self.token = self._obtain_token(email, password)
         self.transport = AIOHTTPTransport(
             url=self.api_url,
             headers={'Authorization': f'JWT {self.token}'},
@@ -54,6 +63,45 @@ class TalkbackClient:
         variables = {'token': self.token}
         response = await self._execute_query(query, variables)
         return response
+
+    @staticmethod
+    def _obtain_token(email: str, password: str) -> str:
+        """Obtain a token using email and password."""
+
+        if not email or not password:
+            raise ValueError('Email and password are required.')
+
+        url = 'https://talkback.sh/api/v1/'
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+        query = """
+                mutation ObtainToken($email: String!, $password: String!) {
+                  tokenAuth(email: $email, password: $password) {
+                    token
+                  }
+                }
+            """
+        payload = {'query': query, 'variables': {'email': email, 'password': password}}
+
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            response_data = response.json()
+
+            if 'errors' in response_data:
+                raise TalkbackAuthenticationError(response_data['errors'][0]['message'])
+            token = response_data.get('data', {}).get('tokenAuth', {}).get('token')
+            if not token:
+                raise TalkbackAuthenticationError('Invalid response: Token not found.')
+
+            return token
+
+        except requests.RequestException as e:
+            raise ValueError(f'Request failed: {e}') from e
+        except ValueError as e:
+            raise ValueError(f'Failed to obtain token: {e}') from e
 
     async def refresh_token(self) -> Dict[Any, Any]:
         """ Refresh the Talkback API token"""
