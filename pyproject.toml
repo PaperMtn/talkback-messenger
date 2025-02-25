@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "talkback-messenger"
-version = "0.9.0"
+version = "0.10.0"
 description = "Finds the InfoSec content you're interested in from talkback.sh, and posts it to Slack in a digestible format."
 authors = ["PaperMtn <papermtn@protonmail.com>"]
 readme = "README.md"
@@ -18,7 +18,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.12"
-gql = "^3.5.0"
+gql = "^3.5.1"
 aiohttp = "^3.11.11"
 beautifulsoup4 = "^4.12.3"
 requests = "^2.32.3"
