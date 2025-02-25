@@ -54,7 +54,8 @@ async def load_app_config(filepath: str) -> config.Config:
         'topic': 'topics',
         'source': 'sources',
         'vulnerability': 'vulnerabilities',
-        'query': 'queries'
+        'query': 'queries',
+        'vendor': 'vendors'
     }
 
     for sub_type, config_key in subscription_types.items():
