@@ -86,7 +86,7 @@ class TalkbackClient:
         payload = {'query': query, 'variables': {'email': email, 'password': password}}
 
         try:
-            response = requests.post(url, json=payload, headers=headers)
+            response = requests.post(url, json=payload, headers=headers, timeout=60)
             response.raise_for_status()
             response_data = response.json()
 
@@ -102,21 +102,6 @@ class TalkbackClient:
             raise ValueError(f'Request failed: {e}') from e
         except ValueError as e:
             raise ValueError(f'Failed to obtain token: {e}') from e
-
-    async def refresh_token(self) -> Dict[Any, Any]:
-        """ Refresh the Talkback API token"""
-
-        query = """
-            mutation RefreshToken($token: String!) {
-              refreshToken(token: $token) {
-                token
-              }
-            }
-        """
-        variables = {'token': self.token}
-        response = await self._execute_query(query, variables)
-        self.token = response['refreshToken']['token']
-        return response
 
     async def search_resources(self,
                                search: str,
@@ -141,6 +126,25 @@ class TalkbackClient:
                     id
                     url
                     type
+                    cves {
+                      id
+                      status
+                      description
+                      cwes {
+                        id
+                        name
+                      }
+                    }
+                    summary
+                    synopsis
+                    topics {
+                      url
+                      name
+                      type
+                      vendor {
+                        name
+                      }
+                    }
                     createdDate
                     title
                     domain {

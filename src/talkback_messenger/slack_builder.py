@@ -25,7 +25,7 @@ def build_slack_post(resource: Resource) -> List[Dict[Any, Any]]:
 
     category_list = [c.title() for c in resource.categories]
     categories = '\n• '.join(category_list)
-    topics = '\n• '.join([topic.title for topic in resource.topics])
+    topics = '\n• '.join([topic.name for topic in resource.topics])
     vendors_list = [v for v in resource.vendors if v]
     vendors = '\n• '.join(vendors_list)
 
@@ -189,7 +189,7 @@ def build_thread_message(resource: Resource, subscription: Subscription) -> List
             'type': 'section',
             'text': {
                 'type': 'mrkdwn',
-                'text': '*Vulnerabilities*:'
+                'text': '*Vulnerabilities Referenced*:'
             }
         }]
         vuln_elements = []
@@ -200,15 +200,11 @@ def build_thread_message(resource: Resource, subscription: Subscription) -> List
                     'elements': [
                         {
                             'type': 'link',
-                            'url': f'https://talkback.sh/vulnerability/{vuln.name}/',
-                            'text': vuln.name,
+                            'url': f'https://talkback.sh/vulnerability/{vuln.id}/',
+                            'text': vuln.id,
                             'style': {
                                 'bold': True
                             }
-                        },
-                        {
-                            'type': 'text',
-                            'text': f' - CVSS: {vuln.cvss}'
                         }
                     ]
                 }

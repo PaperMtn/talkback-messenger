@@ -15,17 +15,21 @@ from talkback_messenger.models.utils import validate_fields
 @dataclass(slots=True)
 class Topic:
     """Topic from Talkback"""
-    title: str
-    vendor: str
+    name: str
+    vendor: Dict[str, str]
     type: str
+    url: str
+
 
 
 @dataclass(slots=True)
 class Vulnerability:
     """Vulnerability from Talkback"""
-    name: str
+    status: str
+    description: str
+    id: str
     cvss: str
-    cwes: List[str]
+    cwes: List[Dict[str, str]]
     url: str
 
 
@@ -82,7 +86,17 @@ def create_resource_from_dict(resource_dict: Dict) -> Resource:
         Resource object
     """
     topics = [Topic(**topic) for topic in resource_dict.get('topics', [])]
-    vulnerabilities = [Vulnerability(**vuln) for vuln in resource_dict.get('vulnerabilities', [])]
+
+    vendors = []
+    for t in resource_dict.get('topics', []):
+        if t.get('vendor'):
+            vendors.append(t.get('vendor').get('name'))
+    vendors = list(set(vendors))
+
+    if resource_dict.get('cves'):
+        vulnerabilities = create_vulnerability_from_dict(resource_dict.get('cves'))
+    else:
+        vulnerabilities = []
 
     return Resource(
         id=resource_dict.get('id'),
@@ -101,5 +115,20 @@ def create_resource_from_dict(resource_dict: Dict) -> Resource:
         summary=resource_dict.get('summary'),
         topics=topics,
         vulnerabilities=vulnerabilities,
-        vendors=resource_dict.get('vendors', []),
+        vendors=vendors
     )
+
+def create_vulnerability_from_dict(vuln_dict: List[Dict]) -> List[Vulnerability]:
+    vulnerabilities = []
+    for v in vuln_dict:
+        cwes = []
+        for cwe in v.get('cwes', []):
+            cwes.append({'id': cwe.get('id'), 'name': cwe.get('name')})
+        vulnerabilities.append(Vulnerability(
+            cvss=v.get('cvss'),
+            id=v.get('id'),
+            status=v.get('status'),
+            description=v.get('description'),
+            cwes=cwes,
+            url=f'https://talkback.sh/vulnerability/{v.get("name")}/'))
+    return vulnerabilities

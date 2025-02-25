@@ -22,7 +22,6 @@ from loguru import logger
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from talkback_messenger import resource_enricher
 from talkback_messenger import slack_builder
 from talkback_messenger.clients.talkback_client import TalkbackClient
 from talkback_messenger.models import resource, subscription, config
@@ -93,24 +92,15 @@ async def find_resources(talkback_client: TalkbackClient,
         List of Resource objects
     """
 
-    results = []
     resources = await talkback_client.search_resources(
         search=search,
         created_after=created_after,
         created_before=created_before
     )
-    for res in resources:
-        additional_info = resource_enricher.populate_information(f"https://talkback.sh/resource/{res['id']}")
-        res.update({
-            'synopsis': additional_info['synopsis'],
-            'summary': additional_info['summary'],
-            'topics': additional_info['topics'],
-            'vulnerabilities': additional_info['vulnerabilities'],
-            'vendors': list(set(v.get('vendor') for v in additional_info.get('topics', [])))
-        })
-        results.append(resource.create_resource_from_dict(res))
+    # for res in resources:
+    #     results.append(resource.create_resource_from_dict(res))
 
-    return results
+    return [resource.create_resource_from_dict(res) for res in resources]
 
 
 # pylint: disable=too-many-return-statements
@@ -147,13 +137,13 @@ def filter_resource(res: resource.Resource, sub: subscription.Subscription) -> b
     elif sub.subscription_type == 'category':
         return sub.query.lower() in (r.lower() for r in res.categories)
     elif sub.subscription_type == 'topic':
-        return sub.query.lower() in (r.title.lower() for r in res.topics)
+        return sub.query.lower() in (r.name.lower() for r in res.topics)
     elif sub.subscription_type == 'source':
         return sub.query.lower() in res.domain.lower()
     elif sub.subscription_type == 'vendor':
         return sub.query.lower() in (r.lower() for r in res.vendors)
     elif sub.subscription_type == 'vulnerability':
-        return sub.query.lower() in (r.name.lower() for r in res.vulnerabilities)
+        return sub.query.lower() in (r.id.lower() for r in res.vulnerabilities)
     else:
         return False
 
