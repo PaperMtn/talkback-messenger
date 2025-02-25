@@ -1,7 +1,7 @@
 # Talkback Messenger
 ![Python 2.7 and 3 compatible](https://img.shields.io/pypi/pyversions/talkback-messenger)
 ![PyPI version](https://img.shields.io/pypi/v/talkback-messenger.svg)
-![License: GNU AGPLv3](https://img.shields.io/pypi/l/talkback-messenger.svg)
+![License: MIT](https://img.shields.io/pypi/l/talkback-messenger.svg)
 
 Talkback Messenger is an application that finds the InfoSec content you're interested in from [talkback.sh](https://talkback.sh/), and posts it to Slack in a digestible format.
 
@@ -59,16 +59,16 @@ I've included an app manifest file that you can use to create your app in the di
 
 Once you've installed your Slack app, generate and safely store your bot token.
 
+Pass the token to Talkback Messenger using the `SLACK_API_TOKEN` environment variable.
+
 > [!Note]
 > To post to private Slack channels, you will need to first add the bot to the channel.
 
-### Talkback API Token
-You will also need an API token for Talkback. You can find instructions on how to do this [here](https://talkback.sh/api/v1/help/).
+### Talkback Email and Password
+You will also need to pass the email and password of your Talkback account to Talkback Messenger, which are used to generate a token at runtime. This can be done using the `TALKBACK_EMAIL` and `TALKBACK_PASSWORD` environment variables.
 
-Generate and store the JWT for use with Talkback Messenger.
-
-> [!Important]
-> Currently, Talkback API tokens expire after 7 days. You will need to regenerate a new token once it expires.
+> [!Note]
+> You can generate API tokens via the Talkback interface, but these expire after 7 days, with no programmatic way of refreshing them. To work around this, Elttam have added the ability to generate a token using your email and password.
 
 ### Configuration File
 Lastly, you will need to generate a `talkback.yml` configuration file. This file defines what content you want to collect from Talkback, and where you want to post it. In-depth instructions on how to create this file can be found [here](./docs/talkback_conf).
@@ -88,6 +88,11 @@ docker pull papermtn/talkback-messenger
 ```
 
 ## Usage
+
+Remember to load the required environment variables:
+- `SLACK_API_TOKEN`
+- `TALKBACK_EMAIL`
+- `TALKBACK_PASSWORD`
 
 Talkback Messenger can be run from the command line with the following options:
 ```bash
@@ -123,6 +128,11 @@ docker run -v /path/to/talkback.yml:/etc/talkback-messenger/talkback.yml papermt
 > The config file must be mounted in the following path: `/etc/talkback-messenger/talkback.yml`
 > 
 > The `--config` option is not required if you are running the container and have mounted the configuration file.
+> 
+> Make sure you pass the required environment variables to the container in a secure manner:
+> - `SLACK_API_TOKEN`
+> - `TALKBACK_EMAIL`
+> - `TALKBACK_PASSWORD`
 
 ## Future additions
 Talkback Messenger is a work in progress, and currently in pre-release.

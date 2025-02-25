@@ -63,6 +63,17 @@ class TalkbackAPIError(Exception):
         super().__init__(self.message)
 
 
+class TalkbackAuthenticationError(Exception):
+    """Raised when the Talkback API authentication fails
+
+    Args:
+        message: Error message
+    """
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
 class MissingEnvVarError(Exception):
     """Exception raised when an environment variable is missing.
 
