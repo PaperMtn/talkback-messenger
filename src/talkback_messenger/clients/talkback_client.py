@@ -8,7 +8,7 @@ Typical usage example:
 
     query_results = await client.search_resources(search, created_after)
 """
-
+import os
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -17,6 +17,13 @@ from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 
 from talkback_messenger.exceptions import TalkbackAuthenticationError
+
+
+def load_query(filename: str) -> str:
+    base_dir = os.path.dirname(__file__)
+    query_path = os.path.join(base_dir, '..', 'queries', filename)
+    with open(query_path, 'r', encoding='utf-8') as file:
+        return file.read()
 
 
 class TalkbackClient:
@@ -40,6 +47,7 @@ class TalkbackClient:
             url=self.api_url,
             headers={'Authorization': f'JWT {self.token}'},
             timeout=60,
+            ssl=True
         )
         self.client = Client(
             transport=self.transport,
@@ -76,13 +84,8 @@ class TalkbackClient:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
-        query = """
-                mutation ObtainToken($email: String!, $password: String!) {
-                  tokenAuth(email: $email, password: $password) {
-                    token
-                  }
-                }
-            """
+
+        query = load_query('obtain_token.gql')
         payload = {'query': query, 'variables': {'email': email, 'password': password}}
 
         try:
@@ -104,71 +107,22 @@ class TalkbackClient:
             raise ValueError(f'Failed to obtain token: {e}') from e
 
     async def search_resources(self,
-                               search: str,
                                created_after: str,
                                created_before: str = datetime.now().isoformat(),
+                               search: str = None,
                                first: int = 100) -> List[Dict[Any, Any]]:
-        """Search for resources from Talkback
+        """Search for resources from Talkback via query. Leave `search` as None to fetch all resources
+        in the specified date range.
+
         Args:
-            search: Search query
             created_after: Created after date
             created_before: Created before date
+            search: Search query (used for filtering resources) - None to fetch all resources
             first: Number of resources to fetch
         Returns:
             List of resources
         """
 
-        query = """
-            query GetResources($search: String!, $first: Int, $after: String, $createdAfter: DateTime, $createdBefore: DateTime) {
-              resources(q: $search, first: $first, after: $after, createdDateAfter: $createdAfter, createdDateBefore: $createdBefore) {
-                edges {
-                  node {
-                    id
-                    url
-                    type
-                    cves {
-                      id
-                      status
-                      description
-                      cwes {
-                        id
-                        name
-                      }
-                    }
-                    summary
-                    synopsis
-                    topics {
-                      url
-                      name
-                      type
-                      vendor {
-                        name
-                      }
-                    }
-                    createdDate
-                    title
-                    domain {
-                      name
-                    }
-                    curators {
-                      name
-                      url
-                    }
-                    categories {
-                      fullname
-                    }
-                    rank
-                    tier
-                    readtime
-                  }
-                }
-                pageInfo {
-                  hasNextPage
-                  endCursor
-                }
-              }
-            }
-        """
         variables = {
             'search': search,
             'first': first,
@@ -176,6 +130,13 @@ class TalkbackClient:
             'createdAfter': created_after,
             'createdBefore': created_before
         }
+
+        if search is None:
+            query = load_query('get_all_resources.gql')
+            del variables['search']
+        else:
+            query = load_query('search_resources.gql')
+
         all_resources = []
 
         while True:

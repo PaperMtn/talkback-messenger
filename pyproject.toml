@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "talkback-messenger"
-version = "0.10.0"
+version = "0.11.0"
 description = "Finds the InfoSec content you're interested in from talkback.sh, and posts it to Slack in a digestible format."
 authors = ["PaperMtn <papermtn@protonmail.com>"]
 readme = "README.md"

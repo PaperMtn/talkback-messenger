@@ -79,27 +79,25 @@ async def load_app_config(filepath: str) -> config.Config:
 
 
 async def find_resources(talkback_client: TalkbackClient,
-                         search: str,
                          created_after: str,
-                         created_before: Optional[str] = None) -> List[resource.Resource]:
+                         created_before: Optional[str] = None,
+                         search: str = None) -> List[resource.Resource]:
     """Carry out a search query on Talkback and enrich the results with additional information.
 
     Args:
         talkback_client: TalkbackClient object
-        search: Search query
         created_after: Created after date
         created_before: Created before date (optional)
+        search: Search query
     Returns:
         List of Resource objects
     """
 
     resources = await talkback_client.search_resources(
-        search=search,
         created_after=created_after,
-        created_before=created_before
+        created_before=created_before,
+        search=search,
     )
-    # for res in resources:
-    #     results.append(resource.create_resource_from_dict(res))
 
     return [resource.create_resource_from_dict(res) for res in resources]
 
@@ -118,15 +116,16 @@ def filter_resource(res: resource.Resource, sub: subscription.Subscription) -> b
     def _common_checks(r: resource.Resource, s: subscription.Subscription) -> bool:
         if r.rank < s.filters.rank:
             logger.debug(f'RANK - Resource `{r.title}` rank {r.rank} is lower than subscription '
-                         f'`{s.subscription_type}: {s.query}` rank: {s.filters.rank}')
+                         f'`{s.subscription_type}: {s.query}` rank: {s.filters.rank} - Created: {r.created_date}')
             return False
         if r.type not in s.filters.resource_types:
             logger.debug(f'TYPE - Resource `{r.title}` type {r.type} not in subscription '
-                         f'`{s.subscription_type}: {s.query}` types {s.filters.resource_types}')
+                         f'`{s.subscription_type}: {s.query}` types {s.filters.resource_types} - '
+                         f'Created: {r.created_date}')
             return False
         if s.filters.curated and not r.curators:
             logger.debug(f'CURATION - Resource `{r.title}` is not curated, the subscription '
-                         f'`{s.subscription_type}: {s.query}` requires curated resources')
+                         f'`{s.subscription_type}: {s.query}` requires curated resources - Created: {r.created_date}')
             return False
         return True
 
@@ -166,9 +165,9 @@ async def query_search(talkback_client: TalkbackClient,
 
     search_results = await find_resources(
         talkback_client,
-        sub_object.query,
         created_after,
-        created_before)
+        created_before,
+        search=sub_object.query)
     return [res for res in search_results if filter_resource(res, sub_object)]
 
 
@@ -187,7 +186,7 @@ async def get_all_results(talkback_client: TalkbackClient,
         List of Resource objects
     """
 
-    return await find_resources(talkback_client, 'title:*', created_after, created_before)
+    return await find_resources(talkback_client, created_after, created_before)
 
 
 async def get_subscribed_content(talkback_client: TalkbackClient,
@@ -209,9 +208,11 @@ async def get_subscribed_content(talkback_client: TalkbackClient,
     for sub in subscriptions:
         if sub.subscription_type == 'query':
             query_results = await query_search(talkback_client, sub, created_after, created_before)
+            logger.debug(f'Query results from Talkback for {sub.query}: {len(query_results)}')
             filtered_results.extend([(res, sub) for res in query_results])
 
     all_resources = await get_all_results(talkback_client, created_after, created_before)
+    logger.debug(f'All resources from Talkback during the timeframe: {len(all_resources)}')
     for sub in [s for s in subscriptions if s.subscription_type != 'query']:
         filtered_results.extend([(res, sub) for res in all_resources if filter_resource(res, sub)])
 

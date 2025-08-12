@@ -1,0 +1,61 @@
+query SearchResources(
+    $search: String!,
+    $first: Int,
+    $after: String,
+    $createdAfter: DateTime,
+    $createdBefore: DateTime
+) {
+    resources(
+        q: $search,
+        first: $first,
+        after: $after,
+        createdDateAfter: $createdAfter,
+        createdDateBefore: $createdBefore
+    ) {
+        edges {
+            node {
+                id
+                url
+                type
+                cves {
+                    id
+                    status
+                    description
+                    cwes {
+                        id
+                        name
+                    }
+                }
+                summary
+                synopsis
+                topics {
+                    url
+                    name
+                    type
+                    vendor {
+                        name
+                    }
+                }
+                createdDate
+                title
+                domain {
+                    name
+                }
+                curators {
+                    name
+                    url
+                }
+                categories {
+                    fullname
+                }
+                rank
+                tier
+                readtime
+            }
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+    }
+}

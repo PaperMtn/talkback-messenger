@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import os
 from importlib import metadata
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Tuple
 
 from loguru import logger
@@ -130,13 +130,13 @@ async def main_coroutine():
         await init_logger(debug)
 
         if timeframe != 24:
-            end_time = datetime.now().replace(minute=0, second=0, microsecond=0)
+            end_time = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
             start_time = end_time - timedelta(hours=timeframe)
 
             created_before = end_time.isoformat()
             created_after = start_time.isoformat()
         else:
-            start_of_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
             start_of_previous_day = start_of_today - timedelta(days=1)
             end_of_previous_day = start_of_today - timedelta(microseconds=1)
 
